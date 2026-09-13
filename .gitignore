@@ -1,0 +1,43 @@
+# Binarios y objetos de C
+*.o
+*.out
+*.exe
+preproc/preproc
+scanner/scanner_bin
+output/output_bin
+
+# Archivos generados por flex
+*.yy.c
+lex.yy.c
+
+# Archivos temporales del preprocesador (no versionar salidas de prueba)
+*.tmp
+*.preproc.c
+
+# LaTeX / Beamer
+*.aux
+*.log
+*.nav
+*.out
+*.snm
+*.toc
+*.vrb
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+
+# PDFs generados (el resultado final no se versiona, se genera)
+output/*.pdf
+
+# Datos temporales para gnuplot/pgfplots
+*.dat
+*.gnuplot
+
+# Editor / SO
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Empaquetado final
+*.tgz

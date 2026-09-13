@@ -1,0 +1,222 @@
+\documentclass[aspectratio=169]{beamer}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{positioning}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usetheme{Madrid}
+
+\title{Lexical Scanner Using Flex}
+\subtitle{Compiladores e Interpretes -- Lexical Analysis}
+\author[F. Benavides, M. Gaviria, M. Zamora]{Felipe Benavides \\ Matthew Gaviria Brenes \\ Marvin Zamora Mussio}
+\institute[TEC]{Ingenieria en Computadores}
+\date{Semestre I -- 2026}
+
+\definecolor{keywordcolor}{RGB}{30,70,150}
+\definecolor{identifiercolor}{RGB}{20,120,70}
+\definecolor{integercolor}{RGB}{150,80,20}
+\definecolor{floatcolor}{RGB}{180,100,20}
+\definecolor{stringcolor}{RGB}{120,40,120}
+\definecolor{charcolor}{RGB}{150,50,50}
+\definecolor{operatorcolor}{RGB}{110,30,150}
+\definecolor{delimitercolor}{RGB}{70,70,70}
+\definecolor{errorcolor}{RGB}{190,20,20}
+\definecolor{errorbackground}{RGB}{255,220,220}
+
+\newcommand{\KW}[1]{\textcolor{keywordcolor}{\textbf{#1}}}
+\newcommand{\ID}[1]{\textcolor{identifiercolor}{\textit{#1}}}
+\newcommand{\INT}[1]{\colorbox{integercolor!15}{\textcolor{integercolor}{#1}}}
+\newcommand{\FLOAT}[1]{\colorbox{floatcolor!15}{\textcolor{floatcolor}{#1}}}
+\newcommand{\STR}[1]{\colorbox{stringcolor!12}{\textcolor{stringcolor}{#1}}}
+\newcommand{\CHAR}[1]{\colorbox{charcolor!12}{\textcolor{charcolor}{#1}}}
+\newcommand{\OP}[1]{\textcolor{operatorcolor}{\textbf{#1}}}
+\newcommand{\DELIM}[1]{\textcolor{delimitercolor}{#1}}
+\newcommand{\ERR}[1]{\colorbox{errorbackground}{\textcolor{errorcolor}{\textbf{#1}}}}
+
+\begin{document}
+
+\begin{frame}
+\titlepage
+\end{frame}
+
+\begin{frame}{Lexical Analysis}
+\begin{itemize}
+\item The scanner is the first phase of the compiler pipeline
+\item It reads the input produced by the preprocessing phase
+\item Whitespace and comments are ignored
+\item The scanner recognizes lexemes and classifies them into token categories
+\item Invalid characters are reported as lexical errors
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Scanner Architecture}
+\begin{center}
+\begin{tikzpicture}[node distance=1.4cm, auto]
+\node[draw, rounded corners, fill=blue!10] (main) {\texttt{main.c}};
+\node[draw, rounded corners, fill=blue!10, right=1.2cm of main] (get) {\texttt{Get\_Token()}};
+\node[draw, rounded corners, fill=blue!10, right=1.2cm of get] (flex) {\texttt{yylex()}};
+\node[draw, rounded corners, fill=blue!10, right=1.2cm of flex] (rules) {\texttt{scanner.l}};
+\draw[->, thick] (main) -- (get);
+\draw[->, thick] (get) -- (flex);
+\draw[->, thick] (flex) -- (rules);
+\end{tikzpicture}
+\end{center}
+\par\vspace{0.6cm}
+\centering Each call to \texttt{Get\_Token()} requests the next recognized token from the Flex scanner.
+\end{frame}
+
+\begin{frame}{Flex}
+\begin{itemize}
+\item Flex generates a lexical analyzer from regular-expression rules
+\item Rules combine patterns with C actions
+\item The longest matching rule is selected
+\item The generated scanner is compiled together with the C modules
+\item The project uses Flex to implement lexical recognition
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Lexeme Visualization}
+\small
+\begin{tabular}{ll}
+\KW{keyword} & Keyword \\
+\ID{identifier} & Identifier \\
+\INT{123} & Integer literal \\
+\FLOAT{45.67} & Floating-point literal \\
+\STR{"text"} & String literal \\
+\CHAR{'A'} & Character literal \\
+\OP{+} & Operator \\
+\DELIM{;} & Delimiter \\
+\ERR{@} & Lexical error \\
+\end{tabular}
+\end{frame}
+
+\begin{frame}[fragile]{Source Entering the Scanner (lines 1--5)}
+\tiny
+\begin{block}{}
+\ttfamily
+\obeylines
+
+\KW{int}\hspace*{0.18em}\ID{main}\DELIM{(}\DELIM{)}\hspace*{0.18em}\DELIM{\{}
+\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\KW{float}\hspace*{0.18em}\ID{area}\hspace*{0.18em}\OP{=}\hspace*{0.18em}\FLOAT{3.14159}\hspace*{0.18em}\OP{*}\hspace*{0.18em}\INT{42}\DELIM{;}
+\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\KW{return}\hspace*{0.18em}\INT{0}\DELIM{;}
+\DELIM{\}}
+\end{block}
+\vspace{0.1cm}
+{\tiny Lexemes are highlighted according to their lexical category.}
+\end{frame}
+
+\begin{frame}{Token Categories}
+\small
+\begin{table}
+\centering
+\begin{tabular}{ll}
+\textbf{Category} & \textbf{Description} \\
+\hline
+KEYWORD & C reserved word \\
+IDENTIFIER & User-defined name \\
+INTEGER\_LITERAL & Integer constant \\
+FLOAT\_LITERAL & Floating-point constant \\
+STRING\_LITERAL & String constant \\
+CHAR\_LITERAL & Character constant \\
+OPERATOR & Arithmetic, logical or relational operator \\
+DELIMITER & Punctuation and grouping symbols \\
+LEXICAL\_ERROR & Unrecognized input character \\
+\end{tabular}
+\end{table}
+\end{frame}
+
+\begin{frame}{Token Statistics}
+\begin{center}
+\begin{tabular}{lr}
+\textbf{Category} & \textbf{Count} \\
+\hline
+Keywords & 3 \\
+Identifiers & 2 \\
+Integer literals & 2 \\
+Float literals & 1 \\
+String literals & 0 \\
+Char literals & 0 \\
+Operators & 2 \\
+Delimiters & 6 \\
+Lexical errors & 0 \\
+\end{tabular}
+\end{center}
+\end{frame}
+
+\begin{frame}{Token Histogram}
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+ybar,
+bar width=10pt,
+width=0.95\textwidth,
+height=0.65\textheight,
+ylabel={Number of tokens},
+symbolic x coords={Keywords,Identifiers,Integer,Float,String,Char,Operators,Delimiters,Errors},
+xtick=data,
+x tick label style={rotate=35,anchor=east,font=\scriptsize},
+ymin=0,
+enlarge x limits=0.04,
+nodes near coords,
+nodes near coords align={vertical},
+]
+\addplot coordinates {
+(Keywords,3)
+(Identifiers,2)
+(Integer,2)
+(Float,1)
+(String,0)
+(Char,0)
+(Operators,2)
+(Delimiters,6)
+(Errors,0)
+};
+\end{axis}
+\end{tikzpicture}
+\end{frame}
+
+\begin{frame}{Token Distribution}
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+hide axis,
+axis equal,
+width=0.75\textwidth,
+height=0.75\textheight,
+xmin=-1.2,xmax=1.2,ymin=-1.2,ymax=1.2
+]
+\addplot[draw=white,fill=keywordcolor] coordinates {(0,0) (1.00000,0.00000) (0.99827,0.05887) (0.99307,0.11754) (0.98443,0.17580) (0.97237,0.23345) (0.95694,0.29028) (0.93819,0.34612) (0.91619,0.40075) (0.89101,0.45399) (0.86273,0.50566) (0.83147,0.55557) (0.79732,0.60356) (0.76041,0.64945) (0.72085,0.69309) (0.67880,0.73432) (0.63439,0.77301) (0.58779,0.80902) (0.53914,0.84222) (0.48862,0.87250) (0.43641,0.89975) (0.38268,0.92388)};
+\addplot[draw=white,fill=identifiercolor] coordinates {(0,0) (0.38268,0.92388) (0.34612,0.93819) (0.30902,0.95106) (0.27144,0.96246) (0.23345,0.97237) (0.19509,0.98079) (0.15643,0.98769) (0.11754,0.99307) (0.07846,0.99692) (0.03926,0.99923) (0.00000,1.00000) (-0.03926,0.99923) (-0.07846,0.99692) (-0.11754,0.99307) (-0.15643,0.98769) (-0.19509,0.98079) (-0.23345,0.97237) (-0.27144,0.96246) (-0.30902,0.95106) (-0.34612,0.93819) (-0.38268,0.92388)};
+\addplot[draw=white,fill=integercolor] coordinates {(0,0) (-0.38268,0.92388) (-0.41866,0.90814) (-0.45399,0.89101) (-0.48862,0.87250) (-0.52250,0.85264) (-0.55557,0.83147) (-0.58779,0.80902) (-0.61909,0.78532) (-0.64945,0.76041) (-0.67880,0.73432) (-0.70711,0.70711) (-0.73432,0.67880) (-0.76041,0.64945) (-0.78532,0.61909) (-0.80902,0.58779) (-0.83147,0.55557) (-0.85264,0.52250) (-0.87250,0.48862) (-0.89101,0.45399) (-0.90814,0.41866) (-0.92388,0.38268)};
+\addplot[draw=white,fill=floatcolor] coordinates {(0,0) (-0.92388,0.38268) (-0.93121,0.36447) (-0.93819,0.34612) (-0.94481,0.32763) (-0.95106,0.30902) (-0.95694,0.29028) (-0.96246,0.27144) (-0.96760,0.25249) (-0.97237,0.23345) (-0.97677,0.21431) (-0.98079,0.19509) (-0.98443,0.17580) (-0.98769,0.15643) (-0.99057,0.13701) (-0.99307,0.11754) (-0.99518,0.09802) (-0.99692,0.07846) (-0.99827,0.05887) (-0.99923,0.03926) (-0.99981,0.01963) (-1.00000,0.00000)};
+\addplot[draw=white,fill=operatorcolor] coordinates {(0,0) (-1.00000,0.00000) (-0.99923,-0.03926) (-0.99692,-0.07846) (-0.99307,-0.11754) (-0.98769,-0.15643) (-0.98079,-0.19509) (-0.97237,-0.23345) (-0.96246,-0.27144) (-0.95106,-0.30902) (-0.93819,-0.34612) (-0.92388,-0.38268) (-0.90814,-0.41866) (-0.89101,-0.45399) (-0.87250,-0.48862) (-0.85264,-0.52250) (-0.83147,-0.55557) (-0.80902,-0.58779) (-0.78532,-0.61909) (-0.76041,-0.64945) (-0.73432,-0.67880) (-0.70711,-0.70711)};
+\addplot[draw=white,fill=delimitercolor] coordinates {(0,0) (-0.70711,-0.70711) (-0.61909,-0.78532) (-0.52250,-0.85264) (-0.41866,-0.90814) (-0.30902,-0.95106) (-0.19509,-0.98079) (-0.07846,-0.99692) (0.03926,-0.99923) (0.15643,-0.98769) (0.27144,-0.96246) (0.38268,-0.92388) (0.48862,-0.87250) (0.58779,-0.80902) (0.67880,-0.73432) (0.76041,-0.64945) (0.83147,-0.55557) (0.89101,-0.45399) (0.93819,-0.34612) (0.97237,-0.23345) (0.99307,-0.11754) (1.00000,-0.00000)};
+\end{axis}
+\end{tikzpicture}
+
+\vspace{-0.2cm}
+\begin{center}
+\scriptsize
+\begin{tabular}{lll}
+\textcolor{keywordcolor}{\rule{0.25cm}{0.25cm}} Keywords & \textcolor{identifiercolor}{\rule{0.25cm}{0.25cm}} Identifiers & \textcolor{integercolor}{\rule{0.25cm}{0.25cm}} Integers \\
+\textcolor{floatcolor}{\rule{0.25cm}{0.25cm}} Floats & \textcolor{stringcolor}{\rule{0.25cm}{0.25cm}} Strings & \textcolor{charcolor}{\rule{0.25cm}{0.25cm}} Chars \\
+\textcolor{operatorcolor}{\rule{0.25cm}{0.25cm}} Operators & \textcolor{delimitercolor}{\rule{0.25cm}{0.25cm}} Delimiters & \textcolor{errorcolor}{\rule{0.25cm}{0.25cm}} Errors
+\end{tabular}
+\end{center}
+\end{frame}
+
+\begin{frame}{Conclusion}
+\begin{itemize}
+\item The preprocessor produces the source consumed by the scanner
+\item Flex provides the regular-expression based scanning mechanism
+\item The scanner classifies valid lexemes into token categories
+\item Whitespace and comments are ignored
+\item Invalid input is preserved as lexical errors
+\item Token statistics provide a quantitative view of the scan
+\end{itemize}
+\end{frame}
+
+\end{document}
