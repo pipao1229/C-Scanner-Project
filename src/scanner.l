@@ -20,10 +20,22 @@ static char *copy_lexeme(const char *text);
 %option nodefault
 
 DIGIT       [0-9]
+HEX_DIGIT   [0-9a-fA-F]
+OCT_DIGIT   [0-7]
 LETTER      [a-zA-Z_]
 IDENT       {LETTER}({LETTER}|{DIGIT})*
-FLOAT       {DIGIT}+"."{DIGIT}+
-INTEGER     {DIGIT}+
+
+INT_SUFFIX  ([uU][lL]?|[uU](ll|LL)?|[lL][uU]?|(ll|LL)[uU]?)
+FLOAT_EXP   ([eE][+-]?{DIGIT}+)
+FLOAT_SUFF  [fFlL]
+
+HEX_INT     0[xX]{HEX_DIGIT}+{INT_SUFFIX}?
+OCT_INT     0{OCT_DIGIT}+{INT_SUFFIX}?
+DEC_INT     {DIGIT}+{INT_SUFFIX}?
+
+FLOAT_1     {DIGIT}+"."{DIGIT}*{FLOAT_EXP}?{FLOAT_SUFF}?
+FLOAT_2     "."{DIGIT}+{FLOAT_EXP}?{FLOAT_SUFF}?
+FLOAT_3     {DIGIT}+{FLOAT_EXP}{FLOAT_SUFF}?
 
 %%
 
@@ -32,6 +44,8 @@ INTEGER     {DIGIT}+
         if (yytext[i] == '\n') {
             scanner_line++;
             scanner_column = 1;
+        } else if (yytext[i] == '\t') {
+            scanner_column += 4; /* Avance estandar de tab */
         } else {
             scanner_column++;
         }
@@ -53,26 +67,26 @@ INTEGER     {DIGIT}+
     }
 }
 
-"auto"|"break"|"case"|"char"|"const"|"continue"|"default"|"do"|"double"|"else"|"enum"|"extern"|"float"|"for"|"goto"|"if"|"int"|"long"|"register"|"return"|"short"|"signed"|"sizeof"|"static"|"struct"|"switch"|"typedef"|"union"|"unsigned"|"void"|"volatile"|"while" {
+"auto"|"break"|"case"|"char"|"const"|"continue"|"default"|"do"|"double"|"else"|"enum"|"extern"|"float"|"for"|"goto"|"if"|"int"|"long"|"register"|"return"|"short"|"signed"|"sizeof"|"static"|"struct"|"switch"|"typedef"|"union"|"unsigned"|"void"|"volatile"|"while"|"inline"|"restrict"|"_Bool"|"_Complex"|"_Imaginary" {
     current_token = make_token(TOKEN_KEYWORD, yytext);
+    scanner_column += yyleng;
+    return 1;
+}
+
+{HEX_INT}|{OCT_INT}|{DEC_INT} {
+    current_token = make_token(TOKEN_INTEGER_LITERAL, yytext);
+    scanner_column += yyleng;
+    return 1;
+}
+
+{FLOAT_1}|{FLOAT_2}|{FLOAT_3} {
+    current_token = make_token(TOKEN_FLOAT_LITERAL, yytext);
     scanner_column += yyleng;
     return 1;
 }
 
 {IDENT} {
     current_token = make_token(TOKEN_IDENTIFIER, yytext);
-    scanner_column += yyleng;
-    return 1;
-}
-
-{FLOAT} {
-    current_token = make_token(TOKEN_FLOAT_LITERAL, yytext);
-    scanner_column += yyleng;
-    return 1;
-}
-
-{INTEGER} {
-    current_token = make_token(TOKEN_INTEGER_LITERAL, yytext);
     scanner_column += yyleng;
     return 1;
 }
@@ -89,7 +103,25 @@ INTEGER     {DIGIT}+
     return 1;
 }
 
-"++"|"--"|"=="|"!="|"<="|">="|"&&"|"||"|"+"|"-"|"*"|"/"|"%"|"="|"<"|">"|"!"|"&"|"|"|"^"|"~"|"?" {
+"..." {
+    current_token = make_token(TOKEN_DELIMITER, yytext);
+    scanner_column += yyleng;
+    return 1;
+}
+
+"->Composite"|"->" {
+    current_token = make_token(TOKEN_OPERATOR, yytext);
+    scanner_column += yyleng;
+    return 1;
+}
+
+"<<"|">>"|"<="|">="|"=="|"!="|"&&"|"||"|"++"|"--"|"+="|"-="|"*="|"/="|"%="|"<<="|">>="|"&="|"^="|"|=" {
+    current_token = make_token(TOKEN_OPERATOR, yytext);
+    scanner_column += yyleng;
+    return 1;
+}
+
+"+"|"-"|"*"|"/"|"%"|"="|"<"|">"|"!"|"&"|"|"|"^"|"~"|"?" {
     current_token = make_token(TOKEN_OPERATOR, yytext);
     scanner_column += yyleng;
     return 1;
