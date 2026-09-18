@@ -1,0 +1,15 @@
+int valid_function(int a) {
+    int normal = 10;
+    
+    // The following lines contain intentional lexical errors in C:
+    int @bad_symbol = 20;
+    double money = 100 $;
+    char flag = ` ;
+    int count# = 5;
+    
+    // Non-ASCII characters (accented and special symbols)
+    int año = 2026;
+    float número = 3.14;
+
+    return normal;
+}

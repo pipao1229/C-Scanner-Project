@@ -12,18 +12,18 @@
 \title{Lexical Scanner Using Flex}
 \subtitle{Compiladores e Interpretes -- Lexical Analysis}
 \author[F. Benavides, M. Gaviria, M. Zamora]{Felipe Benavides \\ Matthew Gaviria Brenes \\ Marvin Zamora Mussio}
-\institute[TEC]{Ingenieria en Computadores}
+\institute[TEC]{Ingenieria en Computación}
 \date{Semestre I -- 2026}
 
-\definecolor{keywordcolor}{RGB}{30,70,150}
-\definecolor{identifiercolor}{RGB}{20,120,70}
-\definecolor{integercolor}{RGB}{150,80,20}
-\definecolor{floatcolor}{RGB}{180,100,20}
-\definecolor{stringcolor}{RGB}{120,40,120}
-\definecolor{charcolor}{RGB}{150,50,50}
-\definecolor{operatorcolor}{RGB}{110,30,150}
-\definecolor{delimitercolor}{RGB}{70,70,70}
-\definecolor{errorcolor}{RGB}{190,20,20}
+\definecolor{keywordcolor}{RGB}{25,75,180}
+\definecolor{identifiercolor}{RGB}{20,135,70}
+\definecolor{integercolor}{RGB}{215,90,15}
+\definecolor{floatcolor}{RGB}{0,150,165}
+\definecolor{stringcolor}{RGB}{145,40,145}
+\definecolor{charcolor}{RGB}{185,140,20}
+\definecolor{operatorcolor}{RGB}{85,25,160}
+\definecolor{delimitercolor}{RGB}{75,80,90}
+\definecolor{errorcolor}{RGB}{210,20,20}
 \definecolor{errorbackground}{RGB}{255,220,220}
 
 \newcommand{\KW}[1]{\textcolor{keywordcolor}{\textbf{#1}}}
@@ -35,6 +35,8 @@
 \newcommand{\OP}[1]{\textcolor{operatorcolor}{\textbf{#1}}}
 \newcommand{\DELIM}[1]{\textcolor{delimitercolor}{#1}}
 \newcommand{\ERR}[1]{\colorbox{errorbackground}{\textcolor{errorcolor}{\textbf{#1}}}}
+
+\setlength{\fboxsep}{0.8pt}
 
 \begin{document}
 
@@ -93,39 +95,92 @@
 \end{tabular}
 \end{frame}
 
-\begin{frame}[fragile]{Source Entering the Scanner (lines 1--16)}
+\begin{frame}[fragile]{Source Entering the Scanner (lines 1--13)}
 \tiny
 \begin{block}{}
-\ttfamily
-\obeylines
-\KW{int}\hspace*{0.18em}\ID{main}\DELIM{(}\DELIM{)}\hspace*{0.18em}\DELIM{\{}
-\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\KW{int}\hspace*{0.18em}\ID{number}\hspace*{0.18em}\OP{=}\hspace*{0.18em}\INT{123}\DELIM{;}
-\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\KW{float}\hspace*{0.18em}\ID{value}\hspace*{0.18em}\OP{=}\hspace*{0.18em}\FLOAT{45.67}\DELIM{;}
-\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\KW{char}\hspace*{0.18em}\ID{letter}\hspace*{0.18em}\OP{=}\hspace*{0.18em}\CHAR{'A'}\DELIM{;}
-\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\KW{const}\hspace*{0.18em}\KW{char}\hspace*{0.18em}\OP{*}\ID{text}\hspace*{0.18em}\OP{=}\hspace*{0.18em}\STR{"Hello\hspace*{0.18em}World"}\DELIM{;}
+\ttfamily\obeylines
 
-\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\ID{number}\OP{++}\DELIM{;}
-\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\ID{value}\hspace*{0.18em}\OP{=}\hspace*{0.18em}\ID{value}\hspace*{0.18em}\OP{+}\hspace*{0.18em}\FLOAT{10.5}\DELIM{;}
 
-\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\KW{if}\hspace*{0.18em}\DELIM{(}\ID{number}\hspace*{0.18em}\OP{\textgreater{}=}\hspace*{0.18em}\INT{100}\hspace*{0.18em}\OP{\&\&}\hspace*{0.18em}\ID{value}\hspace*{0.18em}\OP{!=}\hspace*{0.18em}\INT{0}\DELIM{)}\hspace*{0.18em}\DELIM{\{}
-\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\KW{return}\hspace*{0.18em}\INT{1}\DELIM{;}
+\KW{typedef}\hspace*{0.18em}\KW{struct}\hspace*{0.18em}\DELIM{\{}
+\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\KW{int}\hspace*{0.18em}\ID{id}\DELIM{;}
+\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\KW{char}\hspace*{0.18em}\ID{username}\DELIM{[}\INT{50}\DELIM{]}\DELIM{;}
+\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\KW{double}\hspace*{0.18em}\ID{balance}\DELIM{;}
+\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\KW{\_Bool}\hspace*{0.18em}\ID{is\_active}\DELIM{;}
+\DELIM{\}}\hspace*{0.18em}\ID{Account}\DELIM{;}
+
+\KW{static}\hspace*{0.18em}\KW{inline}\hspace*{0.18em}\KW{int}\hspace*{0.18em}\ID{calculate\_offset}\DELIM{(}\ID{Account}\hspace*{0.18em}\OP{*}\ID{acc}\DELIM{,}\hspace*{0.18em}\KW{int}\hspace*{0.18em}\ID{step}\DELIM{)}\hspace*{0.18em}\DELIM{\{}
+\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\KW{if}\hspace*{0.18em}\DELIM{(}\ID{acc}\hspace*{0.18em}\OP{==}\hspace*{0.18em}\INT{0}\DELIM{)}\hspace*{0.18em}\DELIM{\{}
+\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\KW{return}\hspace*{0.18em}\OP{-}\INT{1}\DELIM{;}
 \hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\DELIM{\}}
-
-\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}
-\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}
-
 \end{block}
 \vspace{0.1cm}
 {\tiny Lexemes are highlighted according to their lexical category.}
 \end{frame}
 
-\begin{frame}[fragile]{Source Entering the Scanner (lines 17--19)}
+\begin{frame}[fragile]{Source Entering the Scanner (lines 14--28)}
 \tiny
 \begin{block}{}
-\ttfamily
-\obeylines
+\ttfamily\obeylines
+\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}
+\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\ID{acc}\OP{-\textgreater{}}\ID{id}\hspace*{0.18em}\OP{+=}\hspace*{0.18em}\ID{step}\DELIM{;}
+\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\ID{acc}\OP{-\textgreater{}}\ID{balance}\hspace*{0.18em}\OP{*=}\hspace*{0.18em}\FLOAT{1.05e-2}\DELIM{;}
+\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}
+\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\KW{return}\hspace*{0.18em}\ID{acc}\OP{-\textgreater{}}\ID{id}\DELIM{;}
+\DELIM{\}}
 
-\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\ERR{@}
+\KW{int}\hspace*{0.18em}\ID{main}\DELIM{(}\KW{void}\DELIM{)}\hspace*{0.18em}\DELIM{\{}
+\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}
+\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\KW{unsigned}\hspace*{0.18em}\KW{long}\hspace*{0.18em}\ID{a}\hspace*{0.18em}\OP{=}\hspace*{0.18em}\INT{123456789UL}\DELIM{;}
+\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\KW{int}\hspace*{0.18em}\ID{octal\_val}\hspace*{0.18em}\OP{=}\hspace*{0.18em}\INT{0755}\DELIM{;}
+\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\KW{int}\hspace*{0.18em}\ID{hex\_val}\hspace*{0.18em}\OP{=}\hspace*{0.18em}\INT{0xDEADBEEF}\DELIM{;}
+\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\KW{long}\hspace*{0.18em}\KW{long}\hspace*{0.18em}\ID{big\_val}\hspace*{0.18em}\OP{=}\hspace*{0.18em}\INT{9876543210LL}\DELIM{;}
+
+\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}
+\end{block}
+\vspace{0.1cm}
+{\tiny Lexemes are highlighted according to their lexical category.}
+\end{frame}
+
+\begin{frame}[fragile]{Source Entering the Scanner (lines 29--41)}
+\tiny
+\begin{block}{}
+\ttfamily\obeylines
+\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\KW{float}\hspace*{0.18em}\ID{f1}\hspace*{0.18em}\OP{=}\hspace*{0.18em}\FLOAT{3.141592f}\DELIM{;}
+\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\KW{double}\hspace*{0.18em}\ID{f2}\hspace*{0.18em}\OP{=}\hspace*{0.18em}\FLOAT{.00543}\DELIM{;}
+\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\KW{double}\hspace*{0.18em}\ID{f3}\hspace*{0.18em}\OP{=}\hspace*{0.18em}\FLOAT{42.}\DELIM{;}
+\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\KW{double}\hspace*{0.18em}\ID{f4}\hspace*{0.18em}\OP{=}\hspace*{0.18em}\FLOAT{6.022e23}\DELIM{;}
+\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\KW{double}\hspace*{0.18em}\ID{f5}\hspace*{0.18em}\OP{=}\hspace*{0.18em}\FLOAT{1.602E-19}\DELIM{;}
+
+\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}
+\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\KW{char}\hspace*{0.18em}\ID{newline}\hspace*{0.18em}\OP{=}\hspace*{0.18em}\CHAR{'\textbackslash{}n'}\DELIM{;}
+\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\KW{char}\hspace*{0.18em}\ID{quote}\hspace*{0.18em}\OP{=}\hspace*{0.18em}\CHAR{'\textbackslash{}''}\DELIM{;}
+\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\KW{char}\hspace*{0.18em}\ID{null\_byte}\hspace*{0.18em}\OP{=}\hspace*{0.18em}\CHAR{'\textbackslash{}0'}\DELIM{;}
+\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\KW{char}\hspace*{0.18em}\OP{*}\ID{msg}\hspace*{0.18em}\OP{=}\hspace*{0.18em}\STR{"Testing\hspace*{0.18em}C\hspace*{0.18em}Scanner:\hspace*{0.18em}\textbackslash{}"Hello,\hspace*{0.18em}World!\textbackslash{}"\textbackslash{}tEscapes:\hspace*{0.18em}\textbackslash{}n\hspace*{0.18em}\textbackslash{}\textbackslash{}"}\DELIM{;}
+
+\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}
+\end{block}
+\vspace{0.1cm}
+{\tiny Lexemes are highlighted according to their lexical category.}
+\end{frame}
+
+\begin{frame}[fragile]{Source Entering the Scanner (lines 42--56)}
+\tiny
+\begin{block}{}
+\ttfamily\obeylines
+\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\KW{int}\hspace*{0.18em}\ID{x}\hspace*{0.18em}\OP{=}\hspace*{0.18em}\INT{10}\DELIM{,}\hspace*{0.18em}\ID{y}\hspace*{0.18em}\OP{=}\hspace*{0.18em}\INT{20}\DELIM{;}
+\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\ID{x}\hspace*{0.18em}\OP{\textless{}\textless{}=}\hspace*{0.18em}\INT{2}\DELIM{;}
+\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\ID{y}\hspace*{0.18em}\OP{\textgreater{}\textgreater{}=}\hspace*{0.18em}\INT{1}\DELIM{;}
+\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\ID{x}\hspace*{0.18em}\OP{+=}\hspace*{0.18em}\DELIM{(}\ID{y}\hspace*{0.18em}\OP{\textgreater{}}\hspace*{0.18em}\INT{5}\DELIM{)}\hspace*{0.18em}\OP{?}\hspace*{0.18em}\DELIM{(}\ID{x}\hspace*{0.18em}\OP{\&}\hspace*{0.18em}\ID{y}\DELIM{)}\hspace*{0.18em}\DELIM{:}\hspace*{0.18em}\DELIM{(}\ID{x}\hspace*{0.18em}\OP{\textasciicircum{}}\hspace*{0.18em}\ID{y}\DELIM{)}\DELIM{;}
+\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\ID{x}\hspace*{0.18em}\OP{|=}\hspace*{0.18em}\OP{\textasciitilde{}}\ID{y}\DELIM{;}
+
+\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\ID{Account}\hspace*{0.18em}\ID{user}\DELIM{;}
+\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\ID{user}\DELIM{.}\ID{id}\hspace*{0.18em}\OP{=}\hspace*{0.18em}\INT{1}\DELIM{;}
+\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\ID{user}\DELIM{.}\ID{balance}\hspace*{0.18em}\OP{=}\hspace*{0.18em}\FLOAT{2500.75}\DELIM{;}
+\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\ID{user}\DELIM{.}\ID{is\_active}\hspace*{0.18em}\OP{=}\hspace*{0.18em}\INT{1}\DELIM{;}
+
+\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\ID{calculate\_offset}\DELIM{(}\OP{\&}\ID{user}\DELIM{,}\hspace*{0.18em}\INT{4}\DELIM{)}\DELIM{;}
+
+\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\hspace*{0.18em}\KW{return}\hspace*{0.18em}\INT{0}\DELIM{;}
 \DELIM{\}}
 \end{block}
 \vspace{0.1cm}
@@ -157,15 +212,15 @@ LEXICAL\_ERROR & Unrecognized input character \\
 \begin{tabular}{lr}
 \textbf{Category} & \textbf{Count} \\
 \hline
-Keywords & 8 \\
-Identifiers & 10 \\
-Integer literals & 4 \\
-Float literals & 2 \\
+Keywords & 32 \\
+Identifiers & 53 \\
+Integer literals & 16 \\
+Float literals & 7 \\
 String literals & 1 \\
-Char literals & 1 \\
-Operators & 11 \\
-Delimiters & 15 \\
-Lexical errors & 1 \\
+Char literals & 3 \\
+Operators & 37 \\
+Delimiters & 64 \\
+Lexical errors & 0 \\
 \end{tabular}
 \end{center}
 \end{frame}
@@ -183,20 +238,12 @@ symbolic x coords={Keywords,Identifiers,Integer,Float,String,Char,Operators,Deli
 xtick=data,
 x tick label style={rotate=35,anchor=east,font=\scriptsize},
 ymin=0,
-enlarge x limits=0.04,
+enlarge x limits=0.08,
 nodes near coords,
 nodes near coords align={vertical},
 ]
 \addplot coordinates {
-(Keywords,8)
-(Identifiers,10)
-(Integer,4)
-(Float,2)
-(String,1)
-(Char,1)
-(Operators,11)
-(Delimiters,15)
-(Errors,1)
+(Keywords,32)(Identifiers,53)(Integer,16)(Float,7)(String,1)(Char,3)(Operators,37)(Delimiters,64)(Errors,0)
 };
 \end{axis}
 \end{tikzpicture}
@@ -206,43 +253,43 @@ nodes near coords align={vertical},
 \centering
 \begin{tikzpicture}
 \begin{axis}[
-hide axis,
-axis equal,
-width=0.75\textwidth,
-height=0.75\textheight,
-xmin=-1.2,xmax=1.2,ymin=-1.2,ymax=1.2
+hide axis, axis equal,
+width=0.72\textwidth, height=0.72\textheight,
+xmin=-1.25, xmax=1.25, ymin=-1.25, ymax=1.25
 ]
-\addplot[draw=white,fill=keywordcolor] coordinates {(0,0) (1.00000,0.00000) (0.99888,0.04740) (0.99551,0.09470) (0.98990,0.14178) (0.98206,0.18855) (0.97202,0.23489) (0.95980,0.28070) (0.94541,0.32588) (0.92890,0.37033) (0.91030,0.41394) (0.88966,0.45663) (0.86701,0.49829) (0.84242,0.53883) (0.81593,0.57815) (0.78761,0.61618) (0.75751,0.65282) (0.72571,0.68800) (0.69229,0.72162) (0.65730,0.75363) (0.62084,0.78394) (0.58298,0.81249)};
-\addplot[draw=white,fill=identifiercolor] coordinates {(0,0) (0.58298,0.81249) (0.53382,0.84560) (0.48279,0.87573) (0.43007,0.90280) (0.37583,0.92669) (0.32027,0.94733) (0.26359,0.96464) (0.20598,0.97856) (0.14765,0.98904) (0.08880,0.99605) (0.02963,0.99956) (-0.02963,0.99956) (-0.08880,0.99605) (-0.14765,0.98904) (-0.20598,0.97856) (-0.26359,0.96464) (-0.32027,0.94733) (-0.37583,0.92669) (-0.43007,0.90280) (-0.48279,0.87573) (-0.53382,0.84560)};
-\addplot[draw=white,fill=integercolor] coordinates {(0,0) (-0.53382,0.84560) (-0.55372,0.83270) (-0.57331,0.81934) (-0.59257,0.80552) (-0.61150,0.79124) (-0.63009,0.77652) (-0.64832,0.76137) (-0.66619,0.74578) (-0.68368,0.72978) (-0.70079,0.71337) (-0.71751,0.69655) (-0.73382,0.67934) (-0.74972,0.66176) (-0.76520,0.64380) (-0.78025,0.62547) (-0.79485,0.60680) (-0.80902,0.58779) (-0.82272,0.56844) (-0.83597,0.54878) (-0.84875,0.52880) (-0.86104,0.50853)};
-\addplot[draw=white,fill=floatcolor] coordinates {(0,0) (-0.86104,0.50853) (-0.86701,0.49829) (-0.87286,0.48797) (-0.87858,0.47759) (-0.88418,0.46714) (-0.88966,0.45663) (-0.89501,0.44605) (-0.90023,0.43541) (-0.90533,0.42471) (-0.91030,0.41394) (-0.91515,0.40312) (-0.91986,0.39225) (-0.92445,0.38131) (-0.92890,0.37033) (-0.93323,0.35929) (-0.93742,0.34820) (-0.94148,0.33706) (-0.94541,0.32588) (-0.94921,0.31465) (-0.95287,0.30337) (-0.95640,0.29206)};
-\addplot[draw=white,fill=stringcolor] coordinates {(0,0) (-0.95640,0.29206) (-0.95812,0.28638) (-0.95980,0.28070) (-0.96144,0.27500) (-0.96306,0.26930) (-0.96464,0.26359) (-0.96618,0.25786) (-0.96769,0.25213) (-0.96917,0.24639) (-0.97061,0.24064) (-0.97202,0.23489) (-0.97340,0.22912) (-0.97474,0.22335) (-0.97605,0.21756) (-0.97732,0.21178) (-0.97856,0.20598) (-0.97976,0.20017) (-0.98093,0.19436) (-0.98206,0.18855) (-0.98316,0.18272) (-0.98423,0.17689)};
-\addplot[draw=white,fill=charcolor] coordinates {(0,0) (-0.98423,0.17689) (-0.98526,0.17105) (-0.98626,0.16521) (-0.98722,0.15936) (-0.98815,0.15351) (-0.98904,0.14765) (-0.98990,0.14178) (-0.99072,0.13591) (-0.99151,0.13004) (-0.99226,0.12416) (-0.99298,0.11827) (-0.99366,0.11239) (-0.99431,0.10649) (-0.99493,0.10060) (-0.99551,0.09470) (-0.99605,0.08880) (-0.99656,0.08289) (-0.99703,0.07698) (-0.99747,0.07107) (-0.99788,0.06516) (-0.99824,0.05924)};
-\addplot[draw=white,fill=operatorcolor] coordinates {(0,0) (-0.99824,0.05924) (-0.99998,-0.00593) (-0.99747,-0.07107) (-0.99072,-0.13591) (-0.97976,-0.20017) (-0.96464,-0.26359) (-0.94541,-0.32588) (-0.92217,-0.38679) (-0.89501,-0.44605) (-0.86404,-0.50342) (-0.82941,-0.55865) (-0.79124,-0.61150) (-0.74972,-0.66176) (-0.70501,-0.70920) (-0.65730,-0.75363) (-0.60680,-0.79485) (-0.55372,-0.83270) (-0.49829,-0.86701) (-0.44074,-0.89764) (-0.38131,-0.92445) (-0.32027,-0.94733)};
-\addplot[draw=white,fill=delimitercolor] coordinates {(0,0) (-0.32027,-0.94733) (-0.23489,-0.97202) (-0.14765,-0.98904) (-0.05924,-0.99824) (0.02963,-0.99956) (0.11827,-0.99298) (0.20598,-0.97856) (0.29206,-0.95640) (0.37583,-0.92669) (0.45663,-0.88966) (0.53382,-0.84560) (0.60680,-0.79485) (0.67498,-0.73783) (0.73783,-0.67498) (0.79485,-0.60680) (0.84560,-0.53382) (0.88966,-0.45663) (0.92669,-0.37583) (0.95640,-0.29206) (0.97856,-0.20598) (0.99298,-0.11827)};
-\addplot[draw=white,fill=errorcolor] coordinates {(0,0) (0.99298,-0.11827) (0.99366,-0.11239) (0.99431,-0.10649) (0.99493,-0.10060) (0.99551,-0.09470) (0.99605,-0.08880) (0.99656,-0.08289) (0.99703,-0.07698) (0.99747,-0.07107) (0.99788,-0.06516) (0.99824,-0.05924) (0.99858,-0.05332) (0.99888,-0.04740) (0.99914,-0.04148) (0.99937,-0.03556) (0.99956,-0.02963) (0.99972,-0.02371) (0.99984,-0.01778) (0.99993,-0.01185) (0.99998,-0.00593) (1.00000,-0.00000)};
+\addplot[draw=white, line width=0.6pt, fill=keywordcolor] coordinates {(0,0) (1.00000,0.00000) (0.99929,0.03775) (0.99715,0.07544) (0.99359,0.11303) (0.98862,0.15046) (0.98223,0.18767) (0.97445,0.22462) (0.96527,0.26124) (0.95472,0.29749) (0.94281,0.33332) (0.92956,0.36867) (0.91498,0.40350) (0.89910,0.43775) (0.88193,0.47138) (0.86351,0.50434) (0.84385,0.53657) (0.82300,0.56805) (0.80097,0.59871) (0.77780,0.62852) (0.75351,0.65743) (0.72816,0.68541) (0.70177,0.71241) (0.67437,0.73839) (0.64602,0.76332) (0.61675,0.78716) (0.58659,0.80988)};
+\node[text=white, font=\bfseries\small] at (0.60566,0.30916) {32};
+\addplot[draw=white, line width=0.6pt, fill=identifiercolor] coordinates {(0,0) (0.58659,0.80988) (0.53483,0.84496) (0.48098,0.87673) (0.42525,0.90508) (0.36785,0.92989) (0.30902,0.95106) (0.24898,0.96851) (0.18796,0.98218) (0.12621,0.99200) (0.06397,0.99795) (0.00147,1.00000) (-0.06102,0.99814) (-0.12328,0.99237) (-0.18506,0.98273) (-0.24612,0.96924) (-0.30621,0.95196) (-0.36511,0.93097) (-0.42257,0.90633) (-0.47839,0.87815) (-0.53234,0.84653) (-0.58420,0.81161) (-0.63378,0.77351) (-0.68088,0.73239) (-0.72532,0.68841) (-0.76693,0.64173) (-0.80554,0.59255)};
+\node[text=white, font=\bfseries\small] at (-0.10489,0.67186) {53};
+\addplot[draw=white, line width=0.6pt, fill=integercolor] coordinates {(0,0) (-0.80554,0.59255) (-0.81658,0.57724) (-0.82733,0.56172) (-0.83779,0.54600) (-0.84794,0.53009) (-0.85780,0.51398) (-0.86735,0.49770) (-0.87659,0.48124) (-0.88552,0.46460) (-0.89413,0.44780) (-0.90243,0.43084) (-0.91040,0.41373) (-0.91805,0.39647) (-0.92537,0.37907) (-0.93236,0.36153) (-0.93902,0.34387) (-0.94534,0.32608) (-0.95133,0.30818) (-0.95698,0.29016) (-0.96228,0.27204) (-0.96725,0.25383) (-0.97187,0.23552) (-0.97614,0.21714) (-0.98007,0.19867) (-0.98364,0.18013) (-0.98687,0.16153)};
+\node[text=white, font=\bfseries\small] at (-0.62679,0.26370) {16};
+\addplot[draw=white, line width=0.6pt, fill=floatcolor] coordinates {(0,0) (-0.98687,0.16153) (-0.98817,0.15337) (-0.98940,0.14521) (-0.99057,0.13703) (-0.99166,0.12884) (-0.99270,0.12065) (-0.99366,0.11245) (-0.99455,0.10424) (-0.99538,0.09602) (-0.99614,0.08779) (-0.99683,0.07956) (-0.99745,0.07133) (-0.99801,0.06308) (-0.99850,0.05484) (-0.99891,0.04659) (-0.99926,0.03834) (-0.99955,0.03008) (-0.99976,0.02183) (-0.99991,0.01357) (-0.99999,0.00531) (-1.00000,-0.00295) (-0.99994,-0.01121) (-0.99981,-0.01947) (-0.99962,-0.02773) (-0.99935,-0.03598) (-0.99902,-0.04423)};
+\addplot[draw=white, line width=0.6pt, fill=stringcolor] coordinates {(0,0) (-0.99902,-0.04423) (-0.99897,-0.04541) (-0.99891,-0.04659) (-0.99886,-0.04777) (-0.99880,-0.04895) (-0.99874,-0.05013) (-0.99868,-0.05130) (-0.99862,-0.05248) (-0.99856,-0.05366) (-0.99850,-0.05484) (-0.99843,-0.05602) (-0.99836,-0.05720) (-0.99829,-0.05837) (-0.99823,-0.05955) (-0.99815,-0.06073) (-0.99808,-0.06191) (-0.99801,-0.06308) (-0.99793,-0.06426) (-0.99786,-0.06544) (-0.99778,-0.06662) (-0.99770,-0.06779) (-0.99762,-0.06897) (-0.99754,-0.07015) (-0.99745,-0.07133) (-0.99737,-0.07250) (-0.99728,-0.07368)};
+\addplot[draw=white, line width=0.6pt, fill=charcolor] coordinates {(0,0) (-0.99728,-0.07368) (-0.99701,-0.07721) (-0.99674,-0.08074) (-0.99644,-0.08427) (-0.99614,-0.08779) (-0.99582,-0.09132) (-0.99549,-0.09484) (-0.99515,-0.09837) (-0.99480,-0.10189) (-0.99443,-0.10541) (-0.99405,-0.10893) (-0.99366,-0.11245) (-0.99325,-0.11596) (-0.99284,-0.11948) (-0.99241,-0.12299) (-0.99197,-0.12650) (-0.99151,-0.13001) (-0.99105,-0.13352) (-0.99057,-0.13703) (-0.99008,-0.14054) (-0.98957,-0.14404) (-0.98906,-0.14754) (-0.98853,-0.15104) (-0.98799,-0.15454) (-0.98743,-0.15804) (-0.98687,-0.16153)};
+\addplot[draw=white, line width=0.6pt, fill=operatorcolor] coordinates {(0,0) (-0.98687,-0.16153) (-0.97888,-0.20445) (-0.96902,-0.24698) (-0.95732,-0.28903) (-0.94379,-0.33054) (-0.92847,-0.37141) (-0.91137,-0.41158) (-0.89254,-0.45097) (-0.87201,-0.48949) (-0.84981,-0.52708) (-0.82600,-0.56367) (-0.80061,-0.59918) (-0.77370,-0.63355) (-0.74531,-0.66672) (-0.71550,-0.69861) (-0.68433,-0.72917) (-0.65186,-0.75834) (-0.61814,-0.78607) (-0.58324,-0.81230) (-0.54723,-0.83698) (-0.51018,-0.86007) (-0.47216,-0.88151) (-0.43324,-0.90128) (-0.39349,-0.91933) (-0.35299,-0.93563) (-0.31182,-0.95014)};
+\node[text=white, font=\bfseries\small] at (-0.51659,-0.44220) {37};
+\addplot[draw=white, line width=0.6pt, fill=delimitercolor] coordinates {(0,0) (-0.31182,-0.95014) (-0.23925,-0.97096) (-0.16531,-0.98624) (-0.09044,-0.99590) (-0.01504,-0.99989) (0.06044,-0.99817) (0.13557,-0.99077) (0.20993,-0.97772) (0.28310,-0.95909) (0.35465,-0.93500) (0.42418,-0.90558) (0.49129,-0.87100) (0.55560,-0.83145) (0.61675,-0.78716) (0.67437,-0.73839) (0.72816,-0.68541) (0.77780,-0.62852) (0.82300,-0.56805) (0.86351,-0.50434) (0.89910,-0.43775) (0.92956,-0.36867) (0.95472,-0.29749) (0.97445,-0.22462) (0.98862,-0.15046) (0.99715,-0.07544) (1.00000,-0.00000)};
+\node[text=white, font=\bfseries\small] at (0.39888,-0.55072) {64};
 \end{axis}
 \end{tikzpicture}
-
-\vspace{-0.2cm}
-\begin{center}
-\scriptsize
+\vspace{-0.3cm}
+\begin{center}\scriptsize
 \begin{tabular}{lll}
-\textcolor{keywordcolor}{\rule{0.25cm}{0.25cm}} Keywords & \textcolor{identifiercolor}{\rule{0.25cm}{0.25cm}} Identifiers & \textcolor{integercolor}{\rule{0.25cm}{0.25cm}} Integers \\
-\textcolor{floatcolor}{\rule{0.25cm}{0.25cm}} Floats & \textcolor{stringcolor}{\rule{0.25cm}{0.25cm}} Strings & \textcolor{charcolor}{\rule{0.25cm}{0.25cm}} Chars \\
-\textcolor{operatorcolor}{\rule{0.25cm}{0.25cm}} Operators & \textcolor{delimitercolor}{\rule{0.25cm}{0.25cm}} Delimiters & \textcolor{errorcolor}{\rule{0.25cm}{0.25cm}} Errors
+\textcolor{keywordcolor}{\rule{0.25cm}{0.25cm}} Keywords (32) & \textcolor{identifiercolor}{\rule{0.25cm}{0.25cm}} Identifiers (53) & \textcolor{integercolor}{\rule{0.25cm}{0.25cm}} Integers (16) \\
+\textcolor{floatcolor}{\rule{0.25cm}{0.25cm}} Floats (7) & \textcolor{stringcolor}{\rule{0.25cm}{0.25cm}} Strings (1) & \textcolor{charcolor}{\rule{0.25cm}{0.25cm}} Chars (3) \\
+\textcolor{operatorcolor}{\rule{0.25cm}{0.25cm}} Operators (37) & \textcolor{delimitercolor}{\rule{0.25cm}{0.25cm}} Delimiters (64) & \textcolor{errorcolor}{\rule{0.25cm}{0.25cm}} Errors (0)
 \end{tabular}
 \end{center}
 \end{frame}
 
 \begin{frame}{Conclusion}
 \begin{itemize}
-\item The preprocessor produces the source consumed by the scanner
-\item Flex provides the regular-expression based scanning mechanism
-\item The scanner classifies valid lexemes into token categories
-\item Whitespace and comments are ignored
-\item Invalid input is preserved as lexical errors
-\item Token statistics provide a quantitative view of the scan
+\item The preprocessor produces the clean source consumed by the scanner
+\item Flex provides regular-expression based scanning and longest-match selection
+\item The scanner categorizes valid lexemes and preserves syntax coordinates
+\item Whitespace and comments are stripped while maintaining line synchronization
+\item Invalid characters are preserved and reported as lexical errors
+\item Token statistics provide quantitative distribution analysis
 \end{itemize}
 \end{frame}
 

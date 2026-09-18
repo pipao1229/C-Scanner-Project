@@ -1,0 +1,14 @@
+int main() {
+    // Real comment 1
+    char *url = "http://example.com/api/test"; /* should NOT strip // */
+    char *fake_comment = "/* This is NOT a comment because it is inside a string */";
+    char quote_slash = '/';
+    char star = '*';
+    
+    /* Real block comment with string inside: "Hello world" */
+    int value = 42; // Real comment 2
+    
+    char *escaped_quotes = "He said: \"// not a comment /* either */\"";
+    
+    return 0;
+}
